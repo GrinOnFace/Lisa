@@ -7,6 +7,6 @@ enum EnabledFlag {
     TRUE
 };
 
-void setBntEnabled(int status, QPushButton *btn);
+void setBtnEnabled(int status, QPushButton *btn);
 
 #endif // STYLE_H

@@ -3,11 +3,6 @@
 
 #include <QMainWindow>
 
-enum ValidationFlag {
-    ERROR = 0,
-    OK
-};
-
 #define LENGTH 10
 
 QT_BEGIN_NAMESPACE
@@ -34,14 +29,8 @@ private:
     QString getTextEdit();
     void setText(QString &result);
 
-    QString getAllowedChars(QString base);
-
     void handleZeroInput(QString &text);
     void handleLengthError(QString &text);
     void updateUIBasedOnInput(QString &text);
-
-    int validateNumber(QString &number, QString &base);
-    QString convertNumber(QString &number, QString &inSystem, QString &outSystem);
-
 };
 #endif // MAINWINDOW_H
