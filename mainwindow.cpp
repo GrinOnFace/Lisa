@@ -1,5 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "style.h"
+
 #include "QMessageBox"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -7,33 +9,31 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
 }
 
-QString MainWindow::get_textEdit () {
+QString MainWindow::getTextEdit () {
     return ui->textEdit->toPlainText();
 }
 
-QString MainWindow::get_comboBox_In () {
-    return ui->comboBox_In->currentText();
+QString MainWindow::getComboBoxIn () {
+    return ui->comboBoxIn->currentText();
 }
 
-QString MainWindow::get_comboBox_Out () {
-    return ui->comboBox_Out->currentText();
+QString MainWindow::getComboBoxOut () {
+    return ui->comboBoxOut->currentText();
 }
 
-void MainWindow::set_text(QString &result) {
-    ui->label_Res->setText(result);
+void MainWindow::setText(QString &result) {
+    ui->labelRes->setText(result);
 }
 
-int MainWindow::validateNumber(QString &number, QString &base){
-    int flag = OK;
+QString MainWindow::getAllowedChars(QString base) {
     QString allowedChars;
+
     if (base == "2") {
         allowedChars = "01";
     } else if (base == "8") {
@@ -44,6 +44,13 @@ int MainWindow::validateNumber(QString &number, QString &base){
         allowedChars = "0123456789ABCDEFabcdef";
     }
 
+    return allowedChars;
+}
+
+int MainWindow::validateNumber(QString &number, QString &base) {
+    int flag = OK;
+    QString allowedChars = getAllowedChars(base);
+
     for (int i = 0; i < number.size(); ++i) {
         if (!allowedChars.contains(number.at(i))) {
             flag = ERROR;
@@ -52,36 +59,61 @@ int MainWindow::validateNumber(QString &number, QString &base){
     return flag;
 }
 
-void MainWindow::on_textEdit_textChanged()
-{
-    QString text = get_textEdit();
+void MainWindow::handleZeroInput(QString &text) {
     if (text.length() == 1 && text == "0") {
         ui->textEdit->clear();
     }
 }
 
+void MainWindow::handleLengthError(QString &text) {
+    if (text.length() == LENGTH) {
+        QMessageBox::critical(this, "Error", "Length error");
+        ui->textEdit->clear();
+    }
+}
+
+void MainWindow::updateUIBasedOnInput(QString &text) {
+    if (text.isEmpty()) {
+        setBntEnabled(FALSE, ui->convertButton);
+        ui->labelRes->clear();
+    } else {
+        setBntEnabled(TRUE, ui->convertButton);
+    }
+}
+
+
+void MainWindow::on_textEdit_textChanged() {
+    QString text = getTextEdit();
+
+    handleZeroInput(text);
+    handleLengthError(text);
+    updateUIBasedOnInput(text);
+}
+
 QString MainWindow::convertNumber(QString &number, QString &inSystem, QString &outSystem) {
-    try {
-        long long int decimalNumber = number.toLongLong(nullptr, inSystem.toInt());
+    bool conversionSuccess = false;
+    long long int decimalNumber = number.toLongLong(&conversionSuccess, inSystem.toInt());
+
+    if (conversionSuccess) {
         return QString::number(decimalNumber, outSystem.toInt());
-    } catch (std::exception& e) {
-        qDebug() << "Ошибка при преобразовании числа в 10 СС: " << e.what();
+    } else {
+        QMessageBox::critical(this, "Error", "Convert error");
         return QString();
     }
 }
 
-void MainWindow::on_pushButton_clicked()
-{
-    QString number = get_textEdit();
-    QString comboBoxOne = get_comboBox_In();
-    QString comboBoxTwo = get_comboBox_Out();
+void MainWindow::on_convertButton_clicked() {
+    QString number = getTextEdit();
+    QString comboBoxOne = getComboBoxIn();
+    QString comboBoxTwo = getComboBoxOut();
+
     int validate = validateNumber(number, comboBoxOne);
-    if (validate == ERROR){
+    if (validate == ERROR) {
         QMessageBox::critical(this, "Error", "Validation error");
     }
-    else{
+    else {
         QString result = convertNumber(number, comboBoxOne, comboBoxTwo);
-        set_text(result);
+        setText(result);
     }
 }
 
